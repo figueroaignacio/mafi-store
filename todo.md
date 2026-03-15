@@ -21,7 +21,7 @@ Objetivo: tener una base sólida del proyecto.
 
 ## User Stories
 
-### US-0.1 — Crear repositorio del proyecto
+### US-0.1 — Crear repositorio del proyecto [x]
 
 **Como** desarrollador
 **Quiero** crear un repositorio base
