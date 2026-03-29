@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="API", version="1.0.0")
+from app.routers import user
+
+app = FastAPI(title="UTN Buddy API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -11,7 +13,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(user.router)
+
 
 @app.get("/")
 def root():
-    return {"message": "We always return to our roots, hello python. Long time no see"}
+    return {"message": "Hello from UTN Buddy API 🚀"}
