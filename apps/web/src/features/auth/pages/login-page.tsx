@@ -1,17 +1,17 @@
+import { loginWithGithub, loginWithGoogle } from "@/features/auth/api/auth.api";
+import { useAuth } from "@/features/auth/hooks/use-auth";
 import { Navigate } from "react-router";
-import { fetchGithubLoginUrl, fetchGoogleLoginUrl } from "../api/auth.api";
-import { useAuth } from "../hooks/use-auth";
 
 export function LoginPage() {
   const { user, isLoading } = useAuth();
 
   async function handleGoogle() {
-    const url = await fetchGoogleLoginUrl();
+    const url = await loginWithGoogle();
     window.location.href = url;
   }
 
   async function handleGithub() {
-    const url = await fetchGithubLoginUrl();
+    const url = await loginWithGithub();
     window.location.href = url;
   }
 

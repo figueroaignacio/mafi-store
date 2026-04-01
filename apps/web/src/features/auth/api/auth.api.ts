@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000";
+import { API_URL } from "@/lib/constants";
 
 export async function fetchMe() {
   const res = await fetch(`${API_URL}/auth/me`, {
@@ -8,7 +8,7 @@ export async function fetchMe() {
   return res.json();
 }
 
-export async function fetchGoogleLoginUrl() {
+export async function loginWithGoogle() {
   const res = await fetch(`${API_URL}/auth/google`, {
     credentials: "include",
   });
@@ -16,7 +16,7 @@ export async function fetchGoogleLoginUrl() {
   return data.url as string;
 }
 
-export async function fetchGithubLoginUrl() {
+export async function loginWithGithub() {
   const res = await fetch(`${API_URL}/auth/github`, {
     credentials: "include",
   });

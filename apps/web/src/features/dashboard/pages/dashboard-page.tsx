@@ -1,5 +1,5 @@
-import { logout } from "../../auth/api/auth.api";
-import { useAuthStore } from "../../auth/stores/auth.store";
+import { logout } from "@/features/auth/api/auth.api";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
 
 export function DashboardPage() {
   const { user } = useAuthStore();

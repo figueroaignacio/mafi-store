@@ -1,7 +1,7 @@
+import { fetchMe } from "@/features/auth/api/auth.api";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { fetchMe } from "../api/auth.api";
-import { useAuthStore } from "../stores/auth.store";
 
 export function useAuth() {
   const { setUser } = useAuthStore();
