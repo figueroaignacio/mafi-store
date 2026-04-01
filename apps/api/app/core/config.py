@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     # App
     FRONTEND_URL: str = "http://localhost:5173"
+    API_URL: str = "http://localhost:8000"
 
     class Config:
         env_file = ".env"

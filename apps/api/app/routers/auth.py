@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Response
+from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -21,7 +22,7 @@ def get_auth_service(db: AsyncSession = Depends(get_db)) -> AuthService:
 def google_login():
     params = (
         f"client_id={settings.GOOGLE_CLIENT_ID}"
-        f"&redirect_uri=http://localhost:8000/auth/google/callback"
+        f"&redirect_uri={settings.API_URL}/auth/google/callback"
         f"&response_type=code"
         f"&scope=openid email profile"
     )
@@ -31,10 +32,10 @@ def google_login():
 @router.get("/google/callback")
 async def google_callback(
     code: str,
-    response: Response,
     service: AuthService = Depends(get_auth_service),
 ):
     token = await service.get_google_user(code)
+    response = RedirectResponse(url=f"{settings.FRONTEND_URL}/dashboard")
     response.set_cookie(
         key="access_token",
         value=token,
@@ -43,14 +44,14 @@ async def google_callback(
         samesite="lax",
         max_age=60 * 60 * 24 * 7,
     )
-    return {"message": "Login exitoso"}
+    return response
 
 
 @router.get("/github")
 def github_login():
     params = (
         f"client_id={settings.GITHUB_CLIENT_ID}"
-        f"&redirect_uri=http://localhost:8000/auth/github/callback"
+        f"&redirect_uri={settings.API_URL}/auth/github/callback"
         f"&scope=user:email"
     )
     return {"url": f"https://github.com/login/oauth/authorize?{params}"}
@@ -59,10 +60,10 @@ def github_login():
 @router.get("/github/callback")
 async def github_callback(
     code: str,
-    response: Response,
     service: AuthService = Depends(get_auth_service),
 ):
     token = await service.get_github_user(code)
+    response = RedirectResponse(url=f"{settings.FRONTEND_URL}/dashboard")
     response.set_cookie(
         key="access_token",
         value=token,
@@ -71,7 +72,7 @@ async def github_callback(
         samesite="lax",
         max_age=60 * 60 * 24 * 7,
     )
-    return {"message": "Login exitoso"}
+    return response
 
 
 @router.get("/logout")
