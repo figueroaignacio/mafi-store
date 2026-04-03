@@ -2,8 +2,8 @@ import httpx
 
 from app.core.config import settings
 from app.core.security import create_access_token
-from app.repositories.user import UserRepository
-from app.schemas.user import UserCreate
+from app.modules.users.repository import UserRepository
+from app.modules.users.schemas import UserCreate
 
 
 class AuthService:

@@ -2,8 +2,8 @@ import uuid
 
 from fastapi import HTTPException
 
-from app.repositories.user import UserRepository
-from app.schemas.user import UserCreate, UserResponse
+from app.modules.users.repository import UserRepository
+from app.modules.users.schemas import UserCreate, UserResponse
 
 
 class UserService:

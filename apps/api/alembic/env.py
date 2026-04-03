@@ -1,10 +1,11 @@
+import asyncio
 from logging.config import fileConfig
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from app.core.config import settings
 from app.core.database import Base
-from app.models import user  
+from app.modules.users.models import User  # noqa: F401 (Ensures User is registered for migrations)
 
 config = context.config
 
@@ -44,12 +45,11 @@ def do_run_migrations(connection):
         context.run_migrations()
 
 
-import asyncio
-
 def run_migrations():
     if context.is_offline_mode():
         run_migrations_offline()
     else:
         asyncio.run(run_migrations_online())
+
 
 run_migrations()

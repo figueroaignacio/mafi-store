@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import auth, user
+from app.modules.auth.router import router as auth_router
+from app.modules.users.router import router as user_router
 
 app = FastAPI(title="UTN Buddy API", version="1.0.0")
 
@@ -14,8 +15,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
-app.include_router(user.router)
+app.include_router(auth_router)
+app.include_router(user_router)
 
 
 @app.get("/")
