@@ -1,5 +1,6 @@
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
 from spite.db.models import Job, JobStatus
 
 
@@ -37,12 +38,23 @@ def get_job_by_id(db: Session, job_id: int) -> Job | None:
     return db.query(Job).filter(Job.id == job_id).first()
 
 
-def update_job_score(db: Session, job_id: int, score: float, reasoning: str) -> Job | None:
+def update_job_score(
+    db: Session,
+    job_id: int,
+    score: float,
+    summary: str,
+    reasoning: str,
+    red_flags: list[str],
+    green_flags: list[str],
+) -> Job | None:
     job = get_job_by_id(db, job_id)
     if not job:
         return None
     job.score = score
+    job.score_summary = summary
     job.score_reasoning = reasoning
+    job.red_flags = red_flags
+    job.green_flags = green_flags
     job.status = JobStatus.SCORED
     db.commit()
     db.refresh(job)

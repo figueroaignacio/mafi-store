@@ -1,7 +1,18 @@
 from datetime import datetime
 from enum import Enum as PyEnum
-from sqlalchemy import String, Text, Float, Integer, DateTime, Enum, UniqueConstraint
+
+from sqlalchemy import (
+    DateTime,
+    Enum,
+    Float,
+    Integer,
+    JSON,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
+
 from spite.db.engine import Base
 
 
@@ -25,18 +36,23 @@ class Job(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     platform: Mapped[str] = mapped_column(String(64), nullable=False)
     score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    score_summary: Mapped[str | None] = mapped_column(String(512), nullable=True)
     score_reasoning: Mapped[str | None] = mapped_column(Text, nullable=True)
+    red_flags: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    green_flags: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     status: Mapped[JobStatus] = mapped_column(
         Enum(JobStatus),
         default=JobStatus.NEW,
         nullable=False,
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-
-    __table_args__ = (
-        UniqueConstraint("url", name="uq_jobs_url"),
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False
     )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+    __table_args__ = (UniqueConstraint("url", name="uq_jobs_url"),)
 
     def __repr__(self) -> str:
         return f"<Job {self.id}: {self.title} @ {self.company} [{self.status.value}]>"

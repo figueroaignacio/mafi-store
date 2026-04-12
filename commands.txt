@@ -1,0 +1,7 @@
+spite --help          
+spite search "python developer" --location "Argentina" --visible
+spite list-jobs       
+spite list-jobs --min-score 6  
+spite inspect 1       
+spite apply 1         
+spite ignore 1        

@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from spite import __version__
+from spite.api.jobs import router as jobs_router
+from spite.api.search import router as search_router
 from spite.db.engine import init_db
 
 
@@ -20,6 +22,9 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan,
 )
+
+app.include_router(jobs_router)
+app.include_router(search_router)
 
 
 @app.get("/health", tags=["meta"])
