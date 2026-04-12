@@ -1,6 +1,5 @@
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-
+from sqlalchemy.exc import IntegrityError
 from spite.db.models import Job, JobStatus
 
 
@@ -25,14 +24,12 @@ def get_jobs(
     limit: int = 50,
 ) -> list[Job]:
     query = db.query(Job)
-
     if min_score is not None:
         query = query.filter(Job.score >= min_score)
     if status is not None:
         query = query.filter(Job.status == status)
     if platform is not None:
         query = query.filter(Job.platform == platform)
-
     return query.order_by(Job.score.desc().nulls_last()).limit(limit).all()
 
 
@@ -40,16 +37,10 @@ def get_job_by_id(db: Session, job_id: int) -> Job | None:
     return db.query(Job).filter(Job.id == job_id).first()
 
 
-def update_job_score(
-    db: Session,
-    job_id: int,
-    score: float,
-    reasoning: str,
-) -> Job | None:
+def update_job_score(db: Session, job_id: int, score: float, reasoning: str) -> Job | None:
     job = get_job_by_id(db, job_id)
     if not job:
         return None
-
     job.score = score
     job.score_reasoning = reasoning
     job.status = JobStatus.SCORED
@@ -58,15 +49,10 @@ def update_job_score(
     return job
 
 
-def update_job_status(
-    db: Session,
-    job_id: int,
-    status: JobStatus,
-) -> Job | None:
+def update_job_status(db: Session, job_id: int, status: JobStatus) -> Job | None:
     job = get_job_by_id(db, job_id)
     if not job:
         return None
-
     job.status = status
     db.commit()
     db.refresh(job)

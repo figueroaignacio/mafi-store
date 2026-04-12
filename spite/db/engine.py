@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
-
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from spite.config import get_settings
 
 settings = get_settings()

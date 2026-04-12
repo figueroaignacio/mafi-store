@@ -1,17 +1,7 @@
 from datetime import datetime
 from enum import Enum as PyEnum
-
-from sqlalchemy import (
-    DateTime,
-    Enum,
-    Float,
-    Integer,
-    String,
-    Text,
-    UniqueConstraint,
-)
+from sqlalchemy import String, Text, Float, Integer, DateTime, Enum, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
-
 from spite.db.engine import Base
 
 
@@ -41,19 +31,12 @@ class Job(Base):
         default=JobStatus.NEW,
         nullable=False,
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False,
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        nullable=False,
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    __table_args__ = (UniqueConstraint("url", name="uq_jobs_url"),)
+    __table_args__ = (
+        UniqueConstraint("url", name="uq_jobs_url"),
+    )
 
     def __repr__(self) -> str:
         return f"<Job {self.id}: {self.title} @ {self.company} [{self.status.value}]>"
