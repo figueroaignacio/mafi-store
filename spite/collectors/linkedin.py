@@ -37,7 +37,7 @@ class LinkedInCollector(BaseCollector):
             await asyncio.sleep(4)
 
             if await self._needs_login(page):
-                print("⚠️  Necesitás loguearte. Corré el setup de sesión primero.")
+                print("⚠️  Login required. Please run the session setup first.")
                 await context.close()
                 return []
 
@@ -99,7 +99,7 @@ class LinkedInCollector(BaseCollector):
                     title = await link_el.inner_text() if link_el else None
                     url = await link_el.get_attribute("href") if link_el else None
                     company = (
-                        await company_el.inner_text() if company_el else "Sin empresa"
+                        await company_el.inner_text() if company_el else "No company info"
                     )
                     location = await location_el.inner_text() if location_el else None
 
@@ -125,6 +125,6 @@ class LinkedInCollector(BaseCollector):
                     continue
 
         except Exception as e:
-            print(f"Error extrayendo jobs: {e}")
+            print(f"Error extracting jobs: {e}")
 
         return jobs

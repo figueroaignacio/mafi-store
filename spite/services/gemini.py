@@ -7,43 +7,43 @@ from spite.config import get_settings
 settings = get_settings()
 
 SCORING_PROMPT = """
-Eres un senior developer con 15 años de experiencia que ha visto demasiadas
-ofertas de trabajo ridículas. Tu trabajo es analizar vacantes y puntuarlas
-con honestidad brutal.
+You are a senior developer with 15 years of experience who has seen far too many
+ridiculous job offers. Your job is to analyze job vacancies and rate them
+with brutal honesty.
 
-CRITERIOS DE PUNTUACIÓN (0.0 a 10.0):
+SCORING CRITERIA (0.0 to 10.0):
 
-PENALIZACIONES (bajan el score):
-- "Startup environment" sin mencionar compensación → -2 puntos
-- Más de 3 tecnologías requeridas para un rol junior → -1.5 puntos
-- "Rockstar", "ninja", "evangelist" en el título → -2 puntos
-- "Competitive salary" sin número real → -1.5 puntos
-- 5+ años de experiencia para tecnologías con menos de 5 años de existencia → -3 puntos
-- "We're a family" → -1 punto
-- Requisitos contradictorios (junior con responsabilidades senior) → -2 puntos
-- Stack de 10+ tecnologías requeridas → -1.5 puntos
+PENALTIES (decrease score):
+- "Startup environment" without mentioning compensation → -2 points
+- More than 3 technologies required for a junior role → -1.5 points
+- "Rockstar", "ninja", "evangelist" in the title → -2 points
+- "Competitive salary" without a real number → -1.5 points
+- 5+ years of experience for technologies less than 5 years old → -3 points
+- "We're a family" → -1 point
+- Contradictory requirements (junior with senior responsibilities) → -2 points
+- Stack of 10+ required technologies → -1.5 points
 
-BONIFICACIONES (suben el score):
-- Salario explícito en el anuncio → +2 puntos
-- Stack técnico claro y razonable → +1 punto
-- Descripción honesta de responsabilidades → +1 punto
-- Modalidad remota explícita → +1 punto
-- Proceso de selección descripto → +1 punto
+BONUSES (increase score):
+- Explicit salary in the ad → +2 points
+- Clear and reasonable technical stack → +1 point
+- Honest description of responsibilities → +1 point
+- Explicit remote modality → +1 point
+- Selection process described → +1 point
 
-ANÁLISIS:
-Título: {title}
-Empresa: {company}
-Ubicación: {location}
-Salario: {salary}
-Descripción: {description}
+ANALYSIS:
+Title: {title}
+Company: {company}
+Location: {location}
+Salary: {salary}
+Description: {description}
 
-Respondé ÚNICAMENTE con un JSON válido, sin markdown, sin explicaciones fuera del JSON:
+Respond ONLY with a valid JSON, no markdown, no explanations outside the JSON:
 {{
-    "score": <número entre 0.0 y 10.0>,
-    "summary": "<una línea describiendo la vacante honestamente>",
+    "score": <number between 0.0 and 10.0>,
+    "summary": "<one line honestly describing the vacancy>",
     "red_flags": ["<flag 1>", "<flag 2>"],
     "green_flags": ["<flag 1>", "<flag 2>"],
-    "reasoning": "<2-3 oraciones explicando el score con cinismo constructivo>"
+    "reasoning": "<2-3 sentences explaining the score with constructive cynicism>"
 }}
 """
 
@@ -51,7 +51,7 @@ Respondé ÚNICAMENTE con un JSON válido, sin markdown, sin explicaciones fuera
 class GeminiService:
     def __init__(self) -> None:
         self.client = genai.Client(api_key=settings.gemini_api_key)
-        self.model = "gemini-2.5-flash"
+        self.model = "gemini-2.0-flash"
 
     def score_job(
         self,
@@ -64,9 +64,9 @@ class GeminiService:
         prompt = SCORING_PROMPT.format(
             title=title,
             company=company,
-            location=location or "No especificada",
-            salary=salary or "No especificado (sospechoso)",
-            description=description or "No hay descripción. Ya eso dice todo.",
+            location=location or "Not specified",
+            salary=salary or "Not specified (suspicious)",
+            description=description or "No description. That says it all.",
         )
 
         try:
@@ -88,18 +88,18 @@ class GeminiService:
         except json.JSONDecodeError:
             return {
                 "score": 5.0,
-                "summary": "Error al parsear respuesta de Gemini.",
-                "red_flags": ["La IA tuvo un mal día"],
+                "summary": "Error parsing Gemini response.",
+                "red_flags": ["The AI had a bad day"],
                 "green_flags": [],
-                "reasoning": "No se pudo analizar la vacante correctamente.",
+                "reasoning": "Could not correctly analyze the vacancy.",
             }
         except Exception as e:
             return {
                 "score": 0.0,
                 "summary": f"Error: {str(e)}",
-                "red_flags": ["Error de conexión con Gemini"],
+                "red_flags": ["Connection error with Gemini"],
                 "green_flags": [],
-                "reasoning": "Algo salió mal. Revisá tu API key.",
+                "reasoning": "Something went wrong. Check your API key.",
             }
 
 
