@@ -1,7 +1,22 @@
-spite --help          
-spite search "python developer" --location "Argentina" --visible
-spite list-jobs       
-spite list-jobs --min-score 6  
-spite inspect 1       
-spite apply 1         
-spite ignore 1        
+spite --help                                                    # ver todos los comandos
+spite version                                                   # ver versión
+
+spite search "python developer"                                 # búsqueda básica
+spite search "python developer" --location "Argentina"         # con ubicación
+spite search "python developer" --location "Argentina" --visible        # con browser visible
+spite search "python developer" --location "Argentina" --max-jobs 10    # limitar resultados
+spite search "python developer" --location "Argentina" --hours 48       # últimas 48hs
+spite search "python developer" --location "Argentina" --no-score       # sin scoring de Gemini
+
+spite list-jobs                                                 # listar todos
+spite list-jobs --min-score 6                                  # solo score >= 6
+spite list-jobs --min-score 7                                  # solo los buenos
+spite list-jobs --platform linkedin                            # filtrar por plataforma
+spite list-jobs --limit 10                                     # limitar resultados
+
+spite inspect 1                                                # ver detalle del job #1
+spite apply 1                                                  # marcar job #1 como aplicado
+spite ignore 1                                                 # marcar job #1 como ignorado
+
+spite clear                                                    # borrar todos (pide confirmación)
+spite clear --force                                            # borrar todos sin confirmación

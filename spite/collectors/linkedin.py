@@ -44,7 +44,7 @@ class LinkedInCollector(BaseCollector):
                 await context.close()
                 return []
 
-            await self._scroll_to_load(page, max_jobs)
+            await self._load_all_cards(page, max_jobs)
             jobs = await self._extract_jobs(page, max_jobs)
             await context.close()
 
@@ -80,10 +80,10 @@ class LinkedInCollector(BaseCollector):
     async def _needs_login(self, page: Page) -> bool:
         return "login" in page.url or "authwall" in page.url
 
-    async def _scroll_to_load(self, page: Page, max_jobs: int) -> None:
+    async def _load_all_cards(self, page: Page, max_jobs: int) -> None:
         """
-        Scroll the page until we have enough jobs or nothing new loads.
-        Uses the scaffold list container — the correct selector for LinkedIn's current layout.
+        Scrollea card por card para forzar el intersection observer de LinkedIn.
+        Sin esto, las cards fuera del viewport quedan como placeholders vacíos.
         """
         previous_count = 0
         no_change_attempts = 0
@@ -91,11 +91,6 @@ class LinkedInCollector(BaseCollector):
         while True:
             cards = await page.query_selector_all(".scaffold-layout__list-item")
             current_count = len(cards)
-
-            print(f"  Cards loaded: {current_count}")
-
-            if current_count >= max_jobs:
-                break
 
             if current_count == previous_count:
                 no_change_attempts += 1
@@ -106,12 +101,11 @@ class LinkedInCollector(BaseCollector):
 
             previous_count = current_count
 
-            # Scroll dentro del contenedor correcto
-            await page.evaluate("""
-                const list = document.querySelector('.scaffold-layout__list');
-                if (list) list.scrollTo(0, list.scrollHeight);
-                else window.scrollTo(0, document.body.scrollHeight);
-            """)
+            # Scroll card por card para activar lazy load
+            for card in cards:
+                await card.scroll_into_view_if_needed()
+                await asyncio.sleep(0.2)
+
             await asyncio.sleep(2)
 
             # Botón "ver más" si aparece
@@ -119,6 +113,9 @@ class LinkedInCollector(BaseCollector):
             if await see_more.count() > 0:
                 await see_more.click()
                 await asyncio.sleep(2)
+
+            if current_count >= max_jobs:
+                break
 
     async def _extract_jobs(self, page: Page, max_jobs: int = 50) -> list[JobData]:
         jobs = []

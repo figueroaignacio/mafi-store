@@ -1,19 +1,16 @@
 import json
-
 from google import genai
-
 from spite.config import get_settings
 
 settings = get_settings()
 
 SCORING_PROMPT = """
 You are a senior developer with 15 years of experience who has seen far too many
-ridiculous job offers. Your job is to analyze job vacancies and rate them
-with brutal honesty.
+ridiculous job offers. Analyze this job vacancy and rate it with brutal honesty.
 
 SCORING CRITERIA (0.0 to 10.0):
 
-PENALTIES (decrease score):
+PENALTIES:
 - "Startup environment" without mentioning compensation → -2 points
 - More than 3 technologies required for a junior role → -1.5 points
 - "Rockstar", "ninja", "evangelist" in the title → -2 points
@@ -23,14 +20,11 @@ PENALTIES (decrease score):
 - Contradictory requirements (junior with senior responsibilities) → -2 points
 - Stack of 10+ required technologies → -1.5 points
 
-BONUSES (increase score):
+BONUSES:
 - Explicit salary in the ad → +2 points
 - Clear and reasonable technical stack → +1 point
-- Honest description of responsibilities → +1 point
 - Explicit remote modality → +1 point
-- Selection process described → +1 point
 
-ANALYSIS:
 Title: {title}
 Company: {company}
 Location: {location}
@@ -40,10 +34,7 @@ Description: {description}
 Respond ONLY with a valid JSON, no markdown, no explanations outside the JSON:
 {{
     "score": <number between 0.0 and 10.0>,
-    "summary": "<one line honestly describing the vacancy>",
-    "red_flags": ["<flag 1>", "<flag 2>"],
-    "green_flags": ["<flag 1>", "<flag 2>"],
-    "reasoning": "<2-3 sentences explaining the score with constructive cynicism>"
+    "summary": "<one honest sentence describing the vacancy and its score>"
 }}
 """
 
@@ -89,17 +80,11 @@ class GeminiService:
             return {
                 "score": 5.0,
                 "summary": "Error parsing Gemini response.",
-                "red_flags": ["The AI had a bad day"],
-                "green_flags": [],
-                "reasoning": "Could not correctly analyze the vacancy.",
             }
         except Exception as e:
             return {
                 "score": 0.0,
                 "summary": f"Error: {str(e)}",
-                "red_flags": ["Connection error with Gemini"],
-                "green_flags": [],
-                "reasoning": "Something went wrong. Check your API key.",
             }
 
 

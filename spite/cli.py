@@ -130,7 +130,6 @@ def search(
     console.print(
         Panel(summary, title="Search Results", border_style="green", expand=False)
     )
-    console.print()
 
 
 @app.command()
@@ -148,7 +147,6 @@ def list_jobs(
             params["min_score"] = min_score
         if platform:
             params["platform"] = platform
-
         response = httpx.get(f"{API_BASE}/jobs/", params=params)
         response.raise_for_status()
         jobs = response.json()
@@ -162,42 +160,47 @@ def list_jobs(
         )
         return
 
-    table = Table(box=box.SIMPLE_HEAVY, border_style="dim", header_style="bold red")
+    table = Table(box=box.SIMPLE, border_style="dim", header_style="dim")
     table.add_column("ID", justify="right", style="dim", width=4)
-    table.add_column("Score", justify="center", width=7)
-    table.add_column("Title", style="bold white")
-    table.add_column("Company", style="cyan")
-    table.add_column("Status", justify="center")
+    table.add_column("Title", style="white", max_width=40)
+    table.add_column("Company", style="white", max_width=25)
+    table.add_column("Status", justify="center", width=10)
+    table.add_column("Summary", style="dim", max_width=50)
+    table.add_column("URL", style="dim", max_width=50, no_wrap=True)
 
     for job in jobs:
         score = job.get("score")
         if score is None:
-            score_str = "[dim]?[/dim]"
+            score_str = "[dim]—[/dim]"
         elif score >= 7:
-            score_str = f"[bold green]{score:.1f}[/bold green]"
+            score_str = f"[green]{score:.1f}[/green]"
         elif score >= 4:
-            score_str = f"[bold yellow]{score:.1f}[/bold yellow]"
+            score_str = f"[yellow]{score:.1f}[/yellow]"
         else:
-            score_str = f"[bold red]{score:.1f}[/bold red]"
+            score_str = f"[red]{score:.1f}[/red]"
 
         status_map = {
-            "new": "[bold blue]NEW[/bold blue]",
-            "scored": "[bold green]SCORED[/bold green]",
-            "applied": "[bold yellow]APPLIED[/bold yellow]",
-            "ignored": "[dim]IGNORED[/dim]",
+            "new": "new",
+            "scored": "[green]scored[/green]",
+            "applied": "[yellow]applied[/yellow]",
+            "ignored": "[dim]ignored[/dim]",
+            "rejected": "[red]rejected[/red]",
         }
         status_str = status_map.get(job["status"], job["status"])
+        summary = job.get("score_summary") or "—"
 
         table.add_row(
             str(job["id"]),
             score_str,
-            job["title"][:50],
-            job["company"][:30],
+            job["title"],
+            job["company"],
             status_str,
+            summary,
+            job["url"],
         )
 
     console.print(table)
-    console.print(f"\n[dim]{len(jobs)} jobs total.[/dim]\n")
+    console.print(f"[dim]{len(jobs)} jobs[/dim]\n")
 
 
 @app.command()

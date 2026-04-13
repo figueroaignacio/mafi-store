@@ -67,7 +67,10 @@ def _run_search(
 
             if score:
                 description = asyncio.run(collector.get_description(job_data.url))
+
+                # Truncar a 2000 caracteres para no gastar tokens de más
                 if description:
+                    description = description[:2000]
                     db_job = crud.get_job_by_id(db, job.id)
                     if db_job:
                         db_job.description = description
@@ -80,14 +83,15 @@ def _run_search(
                     location=job_data.location,
                     salary=job_data.salary,
                 )
+
                 crud.update_job_score(
                     db,
                     job.id,
                     score=result["score"],
-                    summary=result["summary"],
-                    reasoning=result["reasoning"],
-                    red_flags=result["red_flags"],
-                    green_flags=result["green_flags"],
+                    summary=result.get("summary", ""),
+                    reasoning=None,
+                    red_flags=None,
+                    green_flags=None,
                 )
                 scored += 1
         else:
