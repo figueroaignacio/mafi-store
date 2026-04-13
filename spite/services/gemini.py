@@ -38,7 +38,7 @@ Respond ONLY with a valid JSON:
 class GeminiService:
     def __init__(self) -> None:
         self.client = genai.Client(api_key=settings.gemini_api_key)
-        self.model = "gemini-2.0-flash"
+        self.model = "gemini-2.5-flash"
 
     def score_job(
         self,
@@ -76,9 +76,16 @@ class GeminiService:
                 "summary": "Error parsing Gemini response.",
             }
         except Exception as e:
+            error_str = str(e)
+            if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+                summary = "AI called in sick. Too many requests, try again in a minute."
+            elif "API_KEY" in error_str or "401" in error_str:
+                summary = "API key rejected. Even the AI doesn't trust you."
+            else:
+                summary = "AI had an existential crisis and refused to work."
             return {
                 "score": 0.0,
-                "summary": f"Error: {str(e)}",
+                "summary": summary,
             }
 
 

@@ -1,6 +1,5 @@
 import httpx
 import typer
-from rich import box
 from rich.align import Align
 from rich.console import Console, Group
 from rich.panel import Panel
@@ -153,31 +152,28 @@ def list_jobs(
         raise typer.Exit(1)
 
     if not jobs:
-        console.print(
-            "[yellow]No jobs found. Either the market is empty or your filters are too strict.[/yellow]"
-        )
+        console.print("[dim]No jobs found.[/dim]")
         return
 
-    table = Table(box=box.SIMPLE, border_style="dim", header_style="dim")
-    table.add_column("ID", justify="right", style="dim", width=4)
-    table.add_column("Title", style="white", max_width=35, no_wrap=True)
-    table.add_column("Company", style="white", max_width=20, no_wrap=True)
-    table.add_column("Summary", style="dim", max_width=50, no_wrap=True)
-    table.add_column("URL", style="dim", max_width=100, no_wrap=True)
+    console.print(f"\n[dim]{len(jobs)} jobs[/dim]\n")
 
     for job in jobs:
-        summary = job.get("score_summary") or "—"
+        summary = (job.get("score_summary") or "No summary available.")[:120]
+        content = Text()
+        content.append(f"{job['company']}", style="dim")
+        content.append(f"\n\n{summary}\n\n", style="white")
+        content.append(job["url"], style="dim underline")
 
-        table.add_row(
-            str(job["id"]),
-            job["title"],
-            job["company"],
-            summary,
-            job["url"],
+        console.print(
+            Panel(
+                content,
+                title=f"[bold]#{job['id']}  {job['title']}[/bold]",
+                title_align="left",
+                border_style="dim",
+                padding=(1, 2),
+            )
         )
-
-    console.print(table)
-    console.print(f"[dim]{len(jobs)} jobs[/dim]\n")
+        console.print()
 
 
 @app.command()
