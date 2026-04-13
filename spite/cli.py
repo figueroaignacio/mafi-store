@@ -162,23 +162,13 @@ def list_jobs(
 
     table = Table(box=box.SIMPLE, border_style="dim", header_style="dim")
     table.add_column("ID", justify="right", style="dim", width=4)
-    table.add_column("Title", style="white", max_width=40)
-    table.add_column("Company", style="white", max_width=25)
+    table.add_column("Title", style="white", max_width=35, no_wrap=True)
+    table.add_column("Company", style="white", max_width=20, no_wrap=True)
     table.add_column("Status", justify="center", width=10)
-    table.add_column("Summary", style="dim", max_width=50)
-    table.add_column("URL", style="dim", max_width=50, no_wrap=True)
+    table.add_column("Summary", style="dim", max_width=50, no_wrap=True)
+    table.add_column("URL", style="dim", max_width=45, no_wrap=True)
 
     for job in jobs:
-        score = job.get("score")
-        if score is None:
-            score_str = "[dim]—[/dim]"
-        elif score >= 7:
-            score_str = f"[green]{score:.1f}[/green]"
-        elif score >= 4:
-            score_str = f"[yellow]{score:.1f}[/yellow]"
-        else:
-            score_str = f"[red]{score:.1f}[/red]"
-
         status_map = {
             "new": "new",
             "scored": "[green]scored[/green]",
@@ -191,7 +181,6 @@ def list_jobs(
 
         table.add_row(
             str(job["id"]),
-            score_str,
             job["title"],
             job["company"],
             status_str,
