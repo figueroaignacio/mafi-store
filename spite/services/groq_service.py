@@ -7,13 +7,12 @@ from spite.core.config import get_settings
 
 settings = get_settings()
 
-SCORING_PROMPT = """
-You are a senior software engineer reviewing a job posting. Be direct and honest.
-The user is specifically searching for: "{query}".
-If the job does NOT align with this query (e.g. wrong tech stack or completely wrong role), severely penalize the score.
+ANALYSIS_PROMPT = """
+You are reviewing a job posting. The user is specifically searching for: "{query}".
 
-Summarize this job in ONE sentence. Mention what the role is, if the salary is disclosed,
-and one notable thing (good or bad) about the posting. No corporate speak, no drama.
+Analyze this job description and summarize what they are actually asking for,
+including tech stack, responsibilities, and any other notable details.
+Be concise and insightful. No corporate speak.
 
 Title: {title}
 Company: {company}
@@ -21,10 +20,12 @@ Location: {location}
 Salary: {salary}
 Description: {description}
 
-Respond ONLY with valid JSON:
+Respond ONLY with valid JSON exactly matching this format:
 {{
-    "score": <number between 0.0 and 10.0>,
-    "summary": "<one clear, honest sentence about this job>"
+    "summary": "<concise summary of the role and what is asked>",
+    "reasoning": "<any detailed reasoning, tech stack, responsibilities>",
+    "red_flags": ["<flag1>", "<flag2>"],
+    "green_flags": ["<flag1>", "<flag2>"]
 }}
 """
 
@@ -34,7 +35,7 @@ class GroqService:
         self.client = Groq(api_key=settings.groq_api_key)
         self.model = "llama-3.3-70b-versatile"
 
-    def score_job(
+    def analyze_job(
         self,
         query: str,
         title: str,
@@ -43,7 +44,7 @@ class GroqService:
         location: str | None = None,
         salary: str | None = None,
     ) -> dict:
-        prompt = SCORING_PROMPT.format(
+        prompt = ANALYSIS_PROMPT.format(
             query=query,
             title=title,
             company=company,
@@ -72,11 +73,10 @@ class GroqService:
                     if raw.startswith("json"):
                         raw = raw[4:]
                 result = json.loads(raw)
-                result["score"] = max(0.0, min(10.0, float(result.get("score", 5.0))))
                 return result
 
             except json.JSONDecodeError:
-                return {"score": 5.0, "summary": "Could not parse AI response."}
+                return {"summary": "Could not parse AI response."}
             except Exception as e:
                 error_str = str(e)
                 if "429" in error_str or "rate_limit" in error_str.lower():
@@ -89,10 +89,10 @@ class GroqService:
                     summary = "Invalid API key."
                     break
                 else:
-                    summary = "AI scoring failed."
+                    summary = "AI analysis failed."
                     break
 
-        return {"score": 0.0, "summary": summary}
+        return {"summary": summary}
 
 
 groq_service = GroqService()

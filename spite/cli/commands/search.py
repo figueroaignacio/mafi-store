@@ -13,11 +13,11 @@ def search(
         "Argentina", "--location", "-l", help="Location to search"
     ),
     hours: int = typer.Option(24, "--hours", "-h", help="Jobs from the last N hours"),
-    no_score: bool = typer.Option(False, "--no-score", help="Skip Groq scoring"),
+    no_analyze: bool = typer.Option(False, "--no-score", help="Skip Groq analysis"),
     visible: bool = typer.Option(False, "--visible", help="Show browser window"),
     max_jobs: int = typer.Option(50, "--max-jobs", "-m", help="Max jobs to scrape"),
 ) -> None:
-    """Scrape jobs and score them. The part that actually does something."""
+    """Scrape jobs and analyze them. The part that actually does something."""
     console.print(
         f"\n[bold red]▶[/bold red] [bold]Searching:[/bold] {query} in {location} (last {hours}h)\n"
     )
@@ -37,7 +37,7 @@ def search(
                     "query": query,
                     "location": location,
                     "hours": hours,
-                    "score": not no_score,
+                    "analyze": not no_analyze,
                     "headless": not visible,
                     "max_jobs": max_jobs,
                 },
@@ -60,7 +60,7 @@ def search(
     summary.add_row("SAVED", f"[bold cyan]{result['saved']}[/bold cyan] new")
     summary.add_row("SKIP", f"[dim]{result['duplicates']} duplicates[/dim]")
     summary.add_row(
-        "SCORE", f"[bold yellow]{result['scored']}[/bold yellow] analyzed by AI"
+        "ANALYZE", f"[bold yellow]{result['analyzed']}[/bold yellow] analyzed by AI"
     )
     console.print(
         Panel(summary, title="Search Results", border_style="green", expand=False)

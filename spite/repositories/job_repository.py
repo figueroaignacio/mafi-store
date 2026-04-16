@@ -1,12 +1,12 @@
-from typing import Optional, List
-from sqlalchemy import select, delete
+from typing import List, Optional
+
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlite3 import IntegrityError
-from sqlalchemy.exc import IntegrityError as SqlaIntegrityError
 
 from spite.models.job import Job, JobStatus
-from spite.schemas.job import JobCreate, JobUpdate
 from spite.repositories.base import BaseRepository
+from spite.schemas.job import JobCreate, JobUpdate
+
 
 class JobRepository(BaseRepository[Job, JobCreate, JobUpdate]):
     """Job-specific repository."""
@@ -18,20 +18,17 @@ class JobRepository(BaseRepository[Job, JobCreate, JobUpdate]):
     async def get_jobs_with_filters(
         self,
         db: AsyncSession,
-        min_score: Optional[float] = None,
         status: Optional[JobStatus] = None,
         platform: Optional[str] = None,
         limit: int = 50,
     ) -> List[Job]:
         query = select(Job)
-        if min_score is not None:
-            query = query.where(Job.score >= min_score)
         if status is not None:
             query = query.where(Job.status == status)
         if platform is not None:
             query = query.where(Job.platform == platform)
-            
-        query = query.order_by(Job.score.desc().nullslast(), Job.created_at.desc()).limit(limit)
+
+        query = query.order_by(Job.created_at.desc()).limit(limit)
         result = await db.execute(query)
         return list(result.scalars().all())
 
@@ -40,5 +37,6 @@ class JobRepository(BaseRepository[Job, JobCreate, JobUpdate]):
         count = len(result.scalars().all())
         await db.execute(delete(Job))
         return count
+
 
 job_repository = JobRepository(Job)

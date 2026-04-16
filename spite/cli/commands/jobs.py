@@ -8,17 +8,14 @@ from spite.cli.commands import API_BASE, console
 
 
 def list_jobs(
-    min_score: float = typer.Option(
-        0.0, "--min-score", "-s", help="Minimum Groq AI score"
-    ),
+
     platform: str = typer.Option(None, "--platform", "-p", help="Filter by platform"),
     limit: int = typer.Option(50, "--limit", "-n", help="Max results"),
 ) -> None:
-    """List saved jobs. Sorted by score, best first."""
+    """List saved jobs. Sorted by newest first."""
     try:
         params: dict = {"limit": limit}
-        if min_score > 0.0:
-            params["min_score"] = min_score
+
         if platform:
             params["platform"] = platform
         response = httpx.get(f"{API_BASE}/jobs/", params=params)
@@ -67,11 +64,6 @@ def inspect(
         console.print("[red]API is not running.[/red]")
         raise typer.Exit(1)
 
-    score = job.get("score")
-    score_color = (
-        "green" if score and score >= 7 else "yellow" if score and score >= 4 else "red"
-    )
-
     console.print(
         Panel(
             Group(
@@ -80,24 +72,41 @@ def inspect(
                 Text(job["url"], style="dim underline"),
             ),
             title=f"Detailed Report #{job_id}",
-            border_style=score_color,
+            border_style="cyan",
         )
     )
 
-    if score is not None:
-        summary_text = job.get("score_summary") or "No summary available."
+    summary_text = job.get("score_summary")
+    if summary_text:
+        reasoning = job.get("score_reasoning")
+        
+        info_group = []
+        info_group.append(Text(f"{summary_text}\n", style="bold white"))
+        
+        if reasoning:
+            info_group.append(Text(f"{reasoning}\n", style="dim"))
+            
+        red_flags = job.get("red_flags")
+        if red_flags:
+            info_group.append(Text("Red Flags:\n", style="bold red"))
+            for flag in red_flags:
+                info_group.append(Text(f"- {flag}\n", style="red"))
+                
+        green_flags = job.get("green_flags")
+        if green_flags:
+            info_group.append(Text("Green Flags:\n", style="bold green"))
+            for flag in green_flags:
+                info_group.append(Text(f"- {flag}\n", style="green"))
+
         console.print(
             Panel(
-                Group(
-                    Text(f"Score: {score:.1f}/10", style=f"bold {score_color}"),
-                    Text(f"\n{summary_text}", style="dim"),
-                ),
-                title="AI Verdict",
-                border_style=score_color,
+                Group(*info_group),
+                title="AI Analysis",
+                border_style="cyan",
             )
         )
     else:
-        console.print("\n[dim]This job hasn't been scored yet.[/dim]\n")
+        console.print("\n[dim]This job hasn't been analyzed yet.[/dim]\n")
 
     console.print()
 

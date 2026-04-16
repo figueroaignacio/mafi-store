@@ -8,11 +8,11 @@ class SearchRequest(BaseModel):
     hours: int = 24
     max_jobs: int = 50
     headless: bool = True
-    score: bool = True
+    analyze: bool = True
 
 
 class SearchResult(BaseModel):
     found: int
     saved: int
     duplicates: int
-    scored: int
+    analyzed: int

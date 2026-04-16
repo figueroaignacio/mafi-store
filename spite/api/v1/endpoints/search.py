@@ -1,19 +1,20 @@
 import asyncio
-
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError
 import logging
 
-from spite.collectors.linkedin import LinkedInCollector
+from fastapi import APIRouter, Depends
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from spite.api.dependencies import get_db
-from spite.schemas.search import SearchRequest, SearchResult
-from spite.schemas.job import JobCreate, JobUpdate
+from spite.collectors.linkedin import LinkedInCollector
 from spite.repositories.job_repository import job_repository
+from spite.schemas.job import JobCreate, JobUpdate
+from spite.schemas.search import SearchRequest, SearchResult
 from spite.services.groq_service import groq_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
 
 async def _run_search(
     query: str,
@@ -21,7 +22,7 @@ async def _run_search(
     hours: int,
     max_jobs: int,
     headless: bool,
-    score: bool,
+    analyze: bool,
     db: AsyncSession,
 ) -> SearchResult:
     collector = LinkedInCollector(headless=headless)
@@ -30,7 +31,7 @@ async def _run_search(
     found = len(jobs)
     saved = 0
     duplicates = 0
-    scored = 0
+    analyzed = 0
 
     for job_data in jobs:
         existing_job = await job_repository.get_by_url(db, job_data.url)
@@ -53,17 +54,19 @@ async def _run_search(
             )
             saved += 1
             await db.commit()
-            
-            if score:
+
+            if analyze:
                 description = await collector.get_description(job_data.url)
 
                 if description:
                     description = description[:500]
-                    await job_repository.update(db, job, JobUpdate(description=description))
+                    await job_repository.update(
+                        db, job, JobUpdate(description=description)
+                    )
                     await db.commit()
 
                 result = await asyncio.to_thread(
-                    groq_service.score_job,
+                    groq_service.analyze_job,
                     query=query,
                     title=job_data.title,
                     company=job_data.company,
@@ -76,33 +79,35 @@ async def _run_search(
                     db,
                     job,
                     JobUpdate(
-                        score=result["score"],
+                        score=None,
                         score_summary=result.get("summary", ""),
-                        score_reasoning=None,
-                        red_flags=None,
-                        green_flags=None,
-                    )
+                        score_reasoning=result.get("reasoning", ""),
+                        red_flags=result.get("red_flags", []),
+                        green_flags=result.get("green_flags", []),
+                    ),
                 )
                 await db.commit()
-                scored += 1
-                await asyncio.sleep(6) # the original code had time.sleep(6)
+                analyzed += 1
+                await asyncio.sleep(6)  # the original code had time.sleep(6)
 
         except IntegrityError:
             await db.rollback()
             duplicates += 1
 
-    return SearchResult(found=found, saved=saved, duplicates=duplicates, scored=scored)
+    return SearchResult(
+        found=found, saved=saved, duplicates=duplicates, analyzed=analyzed
+    )
 
 
 @router.post("/", response_model=SearchResult)
 async def run_search(body: SearchRequest, db: AsyncSession = Depends(get_db)):
-    """Scrape jobs and score them with Groq."""
+    """Scrape jobs and analyze them with Groq."""
     return await _run_search(
         query=body.query,
         location=body.location,
         hours=body.hours,
         max_jobs=body.max_jobs,
         headless=body.headless,
-        score=body.score,
+        analyze=body.analyze,
         db=db,
     )

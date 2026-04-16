@@ -3,15 +3,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from spite.api.dependencies import get_db
 from spite.models.job import JobStatus
-from spite.schemas.job import JobResponse, StatusUpdate, JobUpdate
 from spite.repositories.job_repository import job_repository
+from spite.schemas.job import JobResponse, JobUpdate, StatusUpdate
 
 router = APIRouter()
 
 
 @router.get("/", response_model=list[JobResponse])
 async def list_jobs(
-    min_score: float | None = None,
     status: JobStatus | None = None,
     platform: str | None = None,
     limit: int = 50,
@@ -19,7 +18,7 @@ async def list_jobs(
 ):
     """List all saved jobs with optional filters."""
     return await job_repository.get_jobs_with_filters(
-        db, min_score=min_score, status=status, platform=platform, limit=limit
+        db, status=status, platform=platform, limit=limit
     )
 
 
@@ -35,7 +34,9 @@ async def get_job(job_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.patch("/{job_id}/status", response_model=JobResponse)
-async def update_status(job_id: int, body: StatusUpdate, db: AsyncSession = Depends(get_db)):
+async def update_status(
+    job_id: int, body: StatusUpdate, db: AsyncSession = Depends(get_db)
+):
     """Update job status (applied, ignored, etc)."""
     job = await job_repository.get(db, job_id)
     if not job:
